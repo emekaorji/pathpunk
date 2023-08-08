@@ -20,23 +20,23 @@ npm install pathpunk
 import Pathpunk from 'pathpunk';
 
 const App = () => {
-	return (
-		<MiniRouter
-			name="hobbies"
-			routes={[
-				{ path: '/', component: <HobbiesComponent /> },
-				{ path: '/hobbies', component: <HobbiesComponent /> },
-				{
-					path: '/hobbies/[hobbyName]',
-					component: <SingleHobbyComponent />,
-				},
-				{
-					path: '/hobbies/:hobbyName',
-					component: <SingleHobbyComponent />,
-				},
-			]}
-		/>
-	);
+  return (
+    <MiniRouter
+      name="hobbies"
+      routes={[
+        { path: '/', component: <HobbiesComponent /> },
+        { path: '/hobbies', component: <HobbiesComponent /> },
+        {
+          path: '/hobbies/[hobbyName]',
+          component: <SingleHobbyComponent />,
+        },
+        {
+          path: '/hobbies/:hobbyName',
+          component: <SingleHobbyComponent />,
+        },
+      ]}
+    />
+  );
 };
 ```
 
