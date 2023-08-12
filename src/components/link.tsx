@@ -1,9 +1,9 @@
 import { MouseEvent, useCallback } from 'react';
-import useMiniRouter from '../hooks/useMiniRouter';
+import useRouter from '../hooks/useRouter';
 import { LinkProps } from '../types/link';
 
 const Link = ({ children, href, ...props }: LinkProps) => {
-	const { push } = useMiniRouter();
+	const { push } = useRouter();
 
 	const handleClick = useCallback(
 		(event: MouseEvent<HTMLAnchorElement>) => {

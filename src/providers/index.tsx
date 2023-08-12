@@ -1,13 +1,7 @@
-import React, {
-	createContext,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react';
-import { MiniRouterContextValue, MiniRouterProps, Route } from '../types';
+import { createContext, useCallback, useMemo, useRef, useState } from 'react';
+import { RouterContextValue, RouterProps, Route } from '../types';
 
-const MiniRouterContext = createContext<MiniRouterContextValue | null>(null);
+const RouterContext = createContext<RouterContextValue | null>(null);
 
 const findRoute = (routes: Route[], path: string): Route | undefined => {
 	return routes.find(item => {
@@ -16,7 +10,7 @@ const findRoute = (routes: Route[], path: string): Route | undefined => {
 	});
 };
 
-function MiniRouter({ name, routes }: MiniRouterProps) {
+function Router({ name, routes }: RouterProps) {
 	const searchParams = useRef(new URLSearchParams(window.location.search));
 	const [activeRoute, setActiveRoute] = useState<Route | undefined>(
 		findRoute(routes, searchParams.current.get(`router_${name}`) || '/')
@@ -52,7 +46,7 @@ function MiniRouter({ name, routes }: MiniRouterProps) {
 		[name, routes]
 	);
 
-	const providerValue = useMemo<MiniRouterContextValue>(
+	const providerValue = useMemo<RouterContextValue>(
 		() => ({
 			component: activeRoute?.component,
 			name,
@@ -64,14 +58,14 @@ function MiniRouter({ name, routes }: MiniRouterProps) {
 	);
 
 	return (
-		<MiniRouterContext.Provider value={providerValue}>
+		<RouterContext.Provider value={providerValue}>
 			{activeRoute ? activeRoute.component : 'NotFound'}
-		</MiniRouterContext.Provider>
+		</RouterContext.Provider>
 	);
 }
 
-export { MiniRouterContext };
-export default MiniRouter;
+export { RouterContext };
+export default Router;
 
 /**
  * TODO

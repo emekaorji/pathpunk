@@ -1,6 +1,6 @@
-import useMiniRouter from './hooks/useMiniRouter';
+import useRouter from './hooks/useRouter';
 import MiniRouter from './providers';
 
-export type { MiniRouterContextValue, MiniRouterProps, Route } from './types';
-export { useMiniRouter };
+export type { RouterContextValue, RouterProps, Route } from './types';
+export { useRouter };
 export default MiniRouter;

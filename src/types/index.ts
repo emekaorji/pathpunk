@@ -5,12 +5,12 @@ export interface Route {
 	component: ReactNode;
 }
 
-export interface MiniRouterProps {
+export interface RouterProps {
 	name: string;
 	routes: Route[];
 }
 
-export interface MiniRouterContextValue {
+export interface RouterContextValue {
 	push: (path: string) => void;
 	component: ReactNode;
 	name: string;

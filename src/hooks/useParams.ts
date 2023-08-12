@@ -1,7 +1,7 @@
-import useMiniRouter from './useMiniRouter';
+import useRouter from './useRouter';
 
 const useParams = () => {
-	const { query } = useMiniRouter();
+	const { query } = useRouter();
 
 	return query;
 };
