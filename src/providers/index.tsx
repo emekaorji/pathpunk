@@ -39,6 +39,7 @@ function MiniRouter({ name, routes }: MiniRouterProps) {
 
 	const push = useCallback(
 		(path: string) => {
+			searchParams.current = new URLSearchParams(window.location.search);
 			const route = findRoute(routes, path);
 			setActiveRoute(route);
 			searchParams.current.set(`router_${name}`, path);
