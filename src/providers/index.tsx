@@ -10,7 +10,7 @@ const findRoute = (routes: Route[], path: string): Route | undefined => {
 	});
 };
 
-function Router({ name, routes }: RouterProps) {
+function Router({ children, name, routes }: RouterProps) {
 	const searchParams = useRef(new URLSearchParams(window.location.search));
 	const [activeRoute, setActiveRoute] = useState<Route | undefined>(
 		findRoute(routes, searchParams.current.get(`router_${name}`) || '/')
@@ -59,7 +59,10 @@ function Router({ name, routes }: RouterProps) {
 
 	return (
 		<RouterContext.Provider value={providerValue}>
-			{activeRoute ? activeRoute.component : 'NotFound'}
+			{(() => {
+				const content = activeRoute ? activeRoute.component : 'NotFound';
+				return children ? children(content) : content;
+			})()}
 		</RouterContext.Provider>
 	);
 }

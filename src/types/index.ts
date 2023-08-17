@@ -6,6 +6,7 @@ export interface Route {
 }
 
 export interface RouterProps {
+	children?: (routes: ReactNode) => ReactNode;
 	name: string;
 	routes: Route[];
 }
