@@ -1,6 +1,6 @@
 {
   "name": "pathpunk",
-  "version": "1.0.8",
+  "version": "1.1.1",
   "description": "A react component based router with most of the functionalities of an SPA router",
   "main": "./lib/index.js",
   "files": [

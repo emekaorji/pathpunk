@@ -6,15 +6,17 @@ export interface Route {
 }
 
 export interface RouterProps {
+	allowHistory?: boolean;
 	children?: (routes: ReactNode) => ReactNode;
 	name: string;
 	routes: Route[];
 }
 
 export interface RouterContextValue {
-	push: (path: string) => void;
+	back: () => void;
 	component: ReactNode;
 	name: string;
 	pathname?: string;
+	push: (path: string) => void;
 	query: { [key: string]: string };
 }

@@ -1,6 +1,12 @@
 import useRouter from './hooks/useRouter';
-import MiniRouter from './providers';
 
+import Link from './components/link';
+import Router from './providers';
+import useParams from './hooks/useParams';
+
+export type { LinkProps } from './types/link';
 export type { RouterContextValue, RouterProps, Route } from './types';
-export { useRouter };
-export default MiniRouter;
+
+export { useParams, useRouter };
+export { Link };
+export default Router;
