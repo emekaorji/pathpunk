@@ -38,5 +38,6 @@ module.exports = {
 				caughtErrorsIgnorePattern: '^_',
 			},
 		],
+		'@typescript-eslint/prefer-regexp-exec': 'off',
 	},
 };

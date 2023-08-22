@@ -18,12 +18,10 @@ const RouterContext = createContext<RouterContextValue | null>(null);
 
 const findRoute = (routes: Route[], path: string): Route | undefined => {
 	return (
-		routes.find((item) => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			const regex = item.path.replaceAll(/\[\w+\]/gi, '\\w+');
+		routes.find(item => {
+			const regex = item.path.replaceAll(/((:\w+)|(\[\w+\]))/gi, '\\w+');
 			if (item.path !== '*') return new RegExp(`^${regex}$`).test(path);
-		}) || routes.find((item) => item.path === '*')
+		}) || routes.find(item => item.path === '*')
 	);
 };
 
@@ -50,9 +48,9 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 			if (realPath) {
 				const arrOfKeys = activeRoute.path.replace(/^\//gi, '').split(/\//gi);
 				const arrOfValues = realPath.replace(/^\//gi, '').split(/\//gi);
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				arrOfKeys.forEach((key, index) => {
-					const _key = key.match(/\[(\w+)\]/i)?.[1];
+					const _key =
+						key.match(/\[(\w+)\]/i)?.[1] || key.match(/:(\w+)/i)?.[1];
 					if (_key) {
 						obj[_key] = arrOfValues[index];
 					}
@@ -128,13 +126,21 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 		}
 	}, [_push, allowHistory]);
 
+	const reload = useCallback(() => {
+		setActiveRoute(undefined);
+		const id = setTimeout(() => {
+			setActiveRoute(activeRoute);
+			clearTimeout(id);
+		}, 0);
+	}, [activeRoute]);
+
 	const renderUI = useCallback(() => {
 		const _path = searchParams.current.get(`router_${name}`) || '/';
 
 		// Update UI
 		const route = findRoute(routes, _path);
 		if (route?.redirect) {
-			redirectId.current = setTimeout(_push, 100, route.redirect);
+			redirectId.current = setTimeout(_push, 0, route.redirect);
 		}
 		setActiveRoute(route);
 		setBreadCrumbs(getCrumbs(_path));
@@ -171,6 +177,7 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 			pathname: activeRoute?.path,
 			push,
 			query,
+			reload,
 			state: routerState,
 		}),
 		[
@@ -181,6 +188,7 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 			name,
 			push,
 			query,
+			reload,
 			routerState,
 		]
 	);
@@ -197,15 +205,3 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 
 export { RouterContext };
 export default Router;
-
-/**
- * TODO
- * 1. Create function to reload router
- * // 2. Create function to go back in history
- * // 3. Create function to go forward in history
- * // 4. Provide breadcrumbs data to context consumer
- * // 5. Redirect
- * // 6. Not Found
- * 7. Allow `:` as prefix when defining dynamic routes
- * 8. Separate hooks
- */

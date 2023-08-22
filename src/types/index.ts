@@ -35,5 +35,6 @@ export interface RouterContextValue {
 	pathname?: string;
 	push: (path: string, options?: PushOptions) => void;
 	query: { [key: string]: string };
+	reload: () => void;
 	state: RouterState | null;
 }
