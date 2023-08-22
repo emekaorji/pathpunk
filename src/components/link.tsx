@@ -1,23 +1,23 @@
 import { MouseEvent, useCallback } from 'react';
-import useRouter from '../hooks/useRouter';
+import usePrivateRouter from '../hooks/usePrivateRouter';
 import { LinkProps } from '../types/link';
 
-const Link = ({ children, href, ...props }: LinkProps) => {
-	const { push } = useRouter();
+const Link = ({ children, href, state, ...props }: LinkProps) => {
+	const { push } = usePrivateRouter();
 
 	const handleClick = useCallback(
 		(event: MouseEvent<HTMLAnchorElement>) => {
 			event.preventDefault();
 			if (!href)
 				throw Error("Link component must have an 'href' attribute set");
-			push(href);
+			push(href, { state });
 		},
-		[href, push]
+		[href, push, state]
 	);
 
 	return (
 		<>
-			<a href="router:void(0)" onClick={handleClick} {...props}>
+			<a href='router:void(0)' onClick={handleClick} {...props}>
 				{children}
 			</a>
 		</>

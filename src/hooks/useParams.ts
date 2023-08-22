@@ -1,7 +1,7 @@
-import useRouter from './useRouter';
+import usePrivateRouter from './usePrivateRouter';
 
 const useParams = () => {
-	const { query } = useRouter();
+	const { query } = usePrivateRouter();
 
 	return query;
 };

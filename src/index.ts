@@ -1,12 +1,16 @@
+// Components
+import Router from './providers';
+import Link from './components/link';
+
+// Hooks
+import useNavigate from './hooks/useNavigate';
+import useParams from './hooks/useParams';
 import useRouter from './hooks/useRouter';
 
-import Link from './components/link';
-import Router from './providers';
-import useParams from './hooks/useParams';
-
+// Types
 export type { LinkProps } from './types/link';
 export type { RouterContextValue, RouterProps, Route } from './types';
 
-export { useParams, useRouter };
+export { useNavigate, useParams, useRouter };
 export { Link };
 export default Router;

@@ -6,36 +6,56 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import { RouterContextValue, RouterProps, Route } from '../types';
+import {
+	RouterContextValue,
+	RouterProps,
+	Route,
+	PushOptions,
+	RouterState,
+} from '../types';
 
 const RouterContext = createContext<RouterContextValue | null>(null);
 
 const findRoute = (routes: Route[], path: string): Route | undefined => {
-	return routes.find(item => {
-		const regex = item.path.replaceAll(/\[\w+\]/gi, '\\w+');
-		return new RegExp(`^${regex}$`).test(path);
-	});
+	return (
+		routes.find((item) => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			const regex = item.path.replaceAll(/\[\w+\]/gi, '\\w+');
+			if (item.path !== '*') return new RegExp(`^${regex}$`).test(path);
+		}) || routes.find((item) => item.path === '*')
+	);
+};
+
+const getCrumbs = (path: string) => {
+	const crumbArray = path.replace(/^\//gi, '').split(/\//gi);
+	return crumbArray[0] ? crumbArray : [];
 };
 
 function Router({ allowHistory, children, name, routes }: RouterProps) {
 	const searchParams = useRef(new URLSearchParams(window.location.search));
-	const [activeRoute, setActiveRoute] = useState<Route | undefined>(
-		findRoute(routes, searchParams.current.get(`router_${name}`) || '/')
-	);
+	const [activeRoute, setActiveRoute] = useState<Route>();
+	const [routerState, setRouterState] = useState<RouterState | null>(null);
+	const [breadCrumbs, setBreadCrumbs] = useState<string[]>([]);
 	const history = useRef<string[]>([
 		searchParams.current.get(`router_${name}`) || '/',
 	]);
 	const historyIndex = useRef(0);
+	const redirectId = useRef(0);
 
 	const query = useMemo(() => {
 		const obj: { [key: string]: string } = {};
 		if (activeRoute) {
 			const realPath = searchParams.current.get(`router_${name}`);
 			if (realPath) {
-				const arrOfKeys = [...activeRoute.path.matchAll(/\[(\w+)\]/gi)];
-				const arrOfValues = [...realPath.matchAll(/(\w+)/gi)];
-				arrOfKeys.forEach(([_, param], index) => {
-					obj[param] = arrOfValues[index]?.[1];
+				const arrOfKeys = activeRoute.path.replace(/^\//gi, '').split(/\//gi);
+				const arrOfValues = realPath.replace(/^\//gi, '').split(/\//gi);
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				arrOfKeys.forEach((key, index) => {
+					const _key = key.match(/\[(\w+)\]/i)?.[1];
+					if (_key) {
+						obj[_key] = arrOfValues[index];
+					}
 				});
 			}
 		}
@@ -43,10 +63,20 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 	}, [activeRoute, name]);
 
 	const _push = useCallback(
-		(path: string, isBackOperation = false) => {
-			// Update UI
+		(
+			path: string,
+			historyOperation?: 'back' | 'forward',
+			options?: PushOptions
+		) => {
+			clearTimeout(redirectId.current);
+			// Render UI
 			const route = findRoute(routes, path);
+			if (route?.redirect) {
+				redirectId.current = setTimeout(_push, 100, route.redirect);
+			}
 			setActiveRoute(route);
+			setRouterState(options?.state || null);
+			setBreadCrumbs(getCrumbs(path));
 
 			// Concatenate new full path
 			searchParams.current = new URLSearchParams(window.location.search);
@@ -60,8 +90,10 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 			if (allowHistory) {
 				window.history.pushState(null, '', relativePath);
 			} else {
-				if (isBackOperation) {
+				if (historyOperation === 'back') {
 					historyIndex.current--;
+				} else if (historyOperation === 'forward') {
+					historyIndex.current++;
 				} else {
 					history.current.splice(historyIndex.current + 1);
 					history.current.push(path);
@@ -73,29 +105,54 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 		[allowHistory, name, routes]
 	);
 
-	const push = useCallback((path: string) => _push(path), [_push]);
+	const push = useCallback(
+		(path: string, options?: PushOptions) => _push(path, undefined, options),
+		[_push]
+	);
 
 	const back = useCallback(() => {
 		if (allowHistory) {
 			window.history.back();
 		} else {
 			const prevPath = history.current[historyIndex.current - 1];
-			console.log('prevPath:', prevPath);
-			if (prevPath) _push(prevPath, true);
+			if (prevPath) _push(prevPath, 'back');
 		}
 	}, [_push, allowHistory]);
+
+	const forward = useCallback(() => {
+		if (allowHistory) {
+			window.history.forward();
+		} else {
+			const nextPath = history.current[historyIndex.current + 1];
+			if (nextPath) _push(nextPath, 'forward');
+		}
+	}, [_push, allowHistory]);
+
+	const renderUI = useCallback(() => {
+		const _path = searchParams.current.get(`router_${name}`) || '/';
+
+		// Update UI
+		const route = findRoute(routes, _path);
+		if (route?.redirect) {
+			redirectId.current = setTimeout(_push, 100, route.redirect);
+		}
+		setActiveRoute(route);
+		setBreadCrumbs(getCrumbs(_path));
+	}, [_push, name, routes]);
 
 	const handlePopState = useCallback(
 		(event: PopStateEvent) => {
 			searchParams.current = new URLSearchParams(
 				(event.target as Window).location.search
 			);
-			const _path = searchParams.current.get(`router_${name}`) || '/';
-			const route = findRoute(routes, _path);
-			setActiveRoute(route);
+			renderUI();
 		},
-		[name, routes]
+		[renderUI]
 	);
+
+	useEffect(() => {
+		renderUI();
+	}, [renderUI]);
 
 	useEffect(() => {
 		window.addEventListener('popstate', handlePopState);
@@ -107,14 +164,25 @@ function Router({ allowHistory, children, name, routes }: RouterProps) {
 
 	const providerValue = useMemo<RouterContextValue>(
 		() => ({
+			breadCrumbs,
 			back,
-			component: activeRoute?.component,
+			forward,
 			name,
 			pathname: activeRoute?.path,
 			push,
 			query,
+			state: routerState,
 		}),
-		[activeRoute?.component, activeRoute?.path, back, name, push, query]
+		[
+			activeRoute?.path,
+			back,
+			forward,
+			breadCrumbs,
+			name,
+			push,
+			query,
+			routerState,
+		]
 	);
 
 	return (
@@ -134,8 +202,10 @@ export default Router;
  * TODO
  * 1. Create function to reload router
  * // 2. Create function to go back in history
- * 3. Create function to go forward in history
- * 4. Provide breadcrumbs data to context consumer
- * 5. Redirect
- * 6. Not Found
+ * // 3. Create function to go forward in history
+ * // 4. Provide breadcrumbs data to context consumer
+ * // 5. Redirect
+ * // 6. Not Found
+ * 7. Allow `:` as prefix when defining dynamic routes
+ * 8. Separate hooks
  */

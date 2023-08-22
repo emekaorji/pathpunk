@@ -1,14 +1,9 @@
-import { useContext } from 'react';
-import { RouterContext } from '../providers';
+import usePrivateRouter from './usePrivateRouter';
 
 const useRouter = () => {
-	const miniRouterContext = useContext(RouterContext);
+	const { name } = usePrivateRouter();
 
-	if (!miniRouterContext) {
-		throw new Error('useRouter has to be used within <RouterContext.Provider>');
-	}
-
-	return miniRouterContext;
+	return { name };
 };
 
 export default useRouter;
